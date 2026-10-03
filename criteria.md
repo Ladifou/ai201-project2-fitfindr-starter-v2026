@@ -4,13 +4,13 @@ Five criteria that say what "working" means for this agent, written in unit 3
 **before** any results existed.
 
 An acceptance criterion names a target: a number, a count, a rate, or something
-a person could plainly observe. *"The agent handles errors"* is an opinion.
-*"When search returns nothing, the agent stops before calling the second tool,
-in 5 of 5 tries"* is a criterion.
+a person could plainly observe. _"The agent handles errors"_ is an opinion.
+_"When search returns nothing, the agent stops before calling the second tool,
+in 5 of 5 tries"_ is a criterion.
 
 Under each one, write a sentence or two on **why that target** and not a
 stricter one. A reason that says something about your tools, your loop, or the
-data earns credit; *"80% seemed reasonable"* does not.
+data earns credit; _"80% seemed reasonable"_ does not.
 
 > Missing your own targets next unit costs you nothing. Setting a target so
 > easy you can't miss it does.
@@ -24,7 +24,8 @@ data earns credit; *"80% seemed reasonable"* does not.
 Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
-**Why this target:**
+**Why this target:** Since searches are done with keyword match from plain text, user vocabulary may vary and it is expected for matches to fail regardless of query accuracy.
+
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
@@ -37,8 +38,11 @@ Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
 **Why this target:**
+
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
+
+     This ensure unnecessary model calls and a 5 of 5 is reasonable because a query with no match will likely return an undesirable suggestion.
 
 ---
 
@@ -54,11 +58,10 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
-
+     Given a query that matches at least one listing, the selected item stored in session should be the same item passed to suggest_outfit in 5 of 5 tries.
 
 **Why this target:**
-
-
+This ensures accurate data transistion between tools. A 5 of 5 target is ideal here since it is single deterministic state check and not a probability.
 
 ---
 
@@ -75,11 +78,10 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-
+     For 5 different listings, at least 4 of 5 fit cards mention the item's price.
 
 **Why this target:**
-
-
+This target
 
 ---
 
@@ -92,11 +94,10 @@ Given a query that matches no listings, the agent stops before calling
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
-
+     If the wardrobe is empty, the agent returns a clear “no items available” message instead of calling the model or crashing — in 5 of 5 tries.
 
 **Why this target:**
-
-
+This allows ud to know whether the tool chain handles the empty-data case cleanly before it tries to do anything else. A strict 5-of-5 target makes sense because the code path is explicit and should be stable once the guard is in place.
 
 ---
 
