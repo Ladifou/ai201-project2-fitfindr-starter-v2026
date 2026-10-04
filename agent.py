@@ -17,6 +17,8 @@ import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
 from generate import ModelUnavailable
+import json
+import re
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -108,11 +110,135 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     session = new_session(query, wardrobe)
 
     # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    while session["error"] is None and session["fit_card"] is None:
+        trace.check_iterations(session.get("iterations", 0))
+        session["iterations"] = session.get("iterations", 0) + 1
+
+        parsed_query = parse_query_with_model(session["query"])
+        session["parsed"] = parsed_query
+        
+        search_results = search_listings(parsed_query["description"], parsed_query["size"], parsed_query["max_price"])
+        session["search_results"] = search_results
+        
+
+        if not search_results:
+            session["error"] = "No results found. Please try a different query."
+            return session
+
+        selected_item = search_results[0]
+        session["selected_item"] = selected_item
+
+        outfit_suggestion = suggest_outfit(selected_item, session["wardrobe"])
+        session["outfit_suggestion"] = outfit_suggestion
+
+        fit_card = create_fit_card(outfit_suggestion, selected_item)
+        session["fit_card"] = fit_card
+
+
+
     return session
 
+        
+
+def parse_query(query: str) -> dict:
+    """
+    Parse a user query like:
+      "vintage graphic tee under $30, size M"
+    into:
+      {
+        "description": "vintage graphic tee",
+        "size": "M",
+        "max_price": 30.0
+      }
+    """
+    q = query.strip()
+
+    # 1) extract size
+    size_match = re.search(r"\b(?:size|sz)\s*([A-Za-z0-9]+)\b", q, re.IGNORECASE)
+    size = size_match.group(1).upper() if size_match else None
+
+    # 2) extract price
+    price_match = re.search(
+        r"(?:under|up to|budget|max(?:imum)?(?: price)?)\s*\$?\s*(\d+(?:\.\d+)?)",
+        q,
+        re.IGNORECASE,
+    )
+    if not price_match:
+        price_match = re.search(r"\$(\d+(?:\.\d+)?)", q)
+
+    max_price = float(price_match.group(1)) if price_match else None
+
+    # 3) remove size and price phrases from the description
+    description = q
+    if size_match:
+        description = description[:size_match.start()] + description[size_match.end():]
+    if price_match:
+        description = description[:price_match.start()] + description[price_match.end():]
+
+    # clean up extra punctuation/spaces
+    description = re.sub(r"\s+", " ", description)
+    description = description.replace(",", " ").strip(" -;:")
+    description = re.sub(r"\s+", " ", description).strip()
+
+    return {
+        "description": description,
+        "size": size,
+        "max_price": max_price,
+    }
+
+
+from generate import generate
+
+def parse_query_with_model(query: str) -> dict:
+    """
+    Use the model to parse:
+      "vintage graphic tee under $30, size M"
+
+    into:
+      {
+        "description": "vintage graphic tee",
+        "size": "M",
+        "max_price": 30.0
+      }
+    """
+    system = """
+    You convert shopping queries into JSON.
+
+    Return ONLY valid JSON with exactly these keys:
+    {
+      "description": "short natural-language item description",
+      "size": "size string or null",
+      "max_price": number or null
+    }
+
+    Rules:
+    - Keep only the item description in description.
+    - If the query mentions a size, put it in size as a one, two, or three-character string capitalized.
+    - If the query says "under $30" or "under 30 dollars", put 30.0 in max_price.
+    - Use null when a value is missing.
+    - Do not include markdown, explanation, or extra text.
+    """
+
+    raw = generate(
+        prompt=f'Parse this query: "{query}"',
+        system=system,
+        cache=False,
+        temperature=0.0,
+    )
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        raise ValueError(f"Model returned invalid JSON: {raw}")
+
+    return {
+        "description": parsed.get("description") or "",
+        "size": parsed.get("size"),
+        "max_price": parsed.get("max_price"),
+    }
 
 # ── running it directly ───────────────────────────────────────────────────────
+
 
 def _show(session: dict) -> None:
     if session["error"]:

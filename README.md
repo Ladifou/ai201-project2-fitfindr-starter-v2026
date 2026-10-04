@@ -41,6 +41,8 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
+This project implements an agent that lets users query a desired outfit by providing brief description and optionally price ceiling and size (i.e: "a vintage graphic tee under $30, size M"). The agent searches listings, works out a suggestion, and writes a caption for it into a card.
+
 ---
 
 ## Tool Inventory
@@ -59,7 +61,7 @@
 
 - **What it does:** Search the listing list based on description and optionally a size and a price ceiling
 - **Inputs:** 'description' (string), 'size' (string), 'max_price' (float)
-- **Returns:** Returns a list of matching listing dictionaries
+- **Returns:** Returns a list of matching listing/item dictionaries
 - **When it has nothing:** It returns an empty list
 
 ### `suggest_outfit`
@@ -91,13 +93,16 @@
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:** If no user wardrobe and/or item aren't provided as search fields/inputs for suggest_outfits, report on it and provide a general styling advice. - agent.py::run_agent
+**Branch rule:** If no user wardrobe and/or item aren't provided as search fields/inputs for suggest_outfits, report on it and ask if the user would like a general suggestion. - agent.py::run_agent
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which --> The query is parsed with string splitting
+**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which --> The query is parsed by asking the model gemini-3.5-flash-lite
 
 **What moves through the session:** <!-- which fields, in what order -->
+The agent gets a query (string), parses it and returns description (str), size(str), and max_price(float)
+search_listings(...) uses the previously returned fields and returns a list of listings/items (dict) into search_results.
+if results exist, the first item is stored in selected_item, which is used by suggest_outfit(selected_item, wardrobe) to write outfit_suggestion (str). create_fit_card(...) uses the previous selected_item (listing) and outfit_suggestion (str) and writes fit_card's caption. if no matches, the session sets error, stops and notify.
 
 ---
 
@@ -111,7 +116,34 @@
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
+Found:    Graphic Tee — 2003 Tour Bootleg Style — $24.0 on depop
+
+  Outfit:   Here are two ways to style your 2003 tour bootleg graphic tee using pieces from your wardrobe, ranging from a laid-back daytime look to an edgy evening outfit.
+
+### Outfit 1: Effortless Y2K Streetwear (Daytime)
+This look leans into the vintage, nostalgic vibe of the graphic tee by pairing it with relaxed denim and sporty layers.
+
+*   **Top:** Graphic Tee (worn over your White ribbed tank top for a layered, textured look with the neckline peeking out).
+*   **Bottom:** Baggy straight-leg jeans, dark wash.
+*   **Footwear:** Chunky white sneakers.
+*   **Outerwear:** Oversized grey crewneck sweatshirt (worn draped loosely over the shoulders or carried, just in case).
+*   **Accessories:** Black crossbody bag.
+*   **Why it works:** The baggy dark-wash jeans complement the loose, vintage aesthetic of the tour tee. Layering the white tank underneath adds dimension, while the chunky sneakers anchor the 2000s streetwear silhouette.
+
+### Outfit 2: High-Low Contrast (Night Out / Edgy)
+This outfit contrasts the casual, faded look of the band tee with tailored trousers and heavy outerwear for a cool, mixed-genre style.
+
+*   **Top:** Graphic Tee (tucked slightly into the trousers).
+*   **Bottom:** Wide-leg khaki trousers, paired with the Brown leather belt.
+*   **Footwear:** Black combat boots.
+*   **Outerwear:** Black cropped zip hoodie layered underneath your Vintage black denim jacket (double outerwear adds great texture and warmth).
+*   **Accessories:** Black crossbody bag.
+*   **Why it works:** Tucking the graphic tee into the structured wide-leg khakis creates a balanced silhouette that elevates the vintage tee from casual to deliberate. The combination of the brown belt, combat boots, and black denim jacket adds an edgy, rock-and-roll finish that matches the bootleg style.
+
+  Fit card: Channel major 2003 nostalgia with this vintage tour bootleg graphic tee, priced at just $24. Style it casually for the daytime by layering it over a ribbed white tank with baggy dark-wash denim, or dress it up for the evening by tucking it into wide-leg khakis with combat boots. Grab this versatile streetwear staple on Depop to effortlessly elevate your everyday rotation!
+
+1 model calls this session, 2 served from cache, 171 prompt + 32 output tokens
 
 ```
 
@@ -119,6 +151,7 @@ $ python app.py ask '...'
 
 ```
 $ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
+
 [{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L','condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033', 'title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_011', 'title': 'Low-Rise Cargo Pants — Khaki', 'description': 'Y2K era low-rise cargo pants. Lots of pockets. Khaki color, slightly distressed at the hems. Great for layering with a long tee.', 'category': 'bottoms', 'style_tags': ['y2k', 'cargo', '2000s', 'streetwear'], 'size': 'W29', 'condition': 'fair', 'price': 27.0, 'colors': ['khaki', 'tan'], 'brand': None, 'platform': 'poshmark'}, {'id': 'lst_012', 'title': 'Oversized Crewneck Sweatshirt — Vintage Navy', 'description': 'Perfectly faded navycrewneck. Genuinely vintage — not manufactured distressed. Ribbed cuffs and hem. No graphics, clean.', 'category': 'tops', 'style_tags': ['vintage', 'basics', 'oversized', 'classic'], 'size': 'XL (fits oversized)', 'condition': 'good', 'price': 20.0, 'colors': ['navy'], 'brand': None, 'platform': 'thredUp'}, {'id': 'lst_015', 'title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on the chest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand':None, 'platform': 'depop'}]
 ```
 
@@ -171,15 +204,22 @@ Nothing beats the classic fit of vintage Levi’s 501s in a timeless medium wash
 
 **Moment 1**
 
-- _What I asked for:_
-- _What came back:_
-- _What I changed:_
+- _What I asked for:_ I asked Copilot to implement a function that parses a query using a model to get descriptions, sizes, and max_price.
+- _What came back:_ It produced a fairly accurate function that didn't account for fields formating. size as (S, M, L...)
+- _What I changed:_ I updated a the rules that governed formatting such that a string 'small', 'medium', and large would translate to 'S', 'M', and 'L' respectively.
 
 **Moment 2**
 
-- _What I asked for:_
-- _What came back:_
-- _What I changed:_
+When attempting to test my parsing function with the command
+
+````
+python -c "from agent import parse_query_with_model; print(parse_query_with_model('vintage graphic tee under $30, size M'))"
+```
+The price was hilighted (green) different from other text and the output always had price as none.
+
+- _What I asked for:_ I told Copilot that including the '$' (from a command it previously provided) causes the result to have max price as none/null.
+- _What came back:_ It implemented a new function to normalize the input.
+- _What I changed:_ I modified my prompt to include my command and mentioned that the '$' sign was hilighted.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
@@ -210,7 +250,7 @@ Nothing beats the classic fit of vintage Levi’s 501s in a timeless medium wash
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
-```
+````
 
 ```
 
@@ -348,3 +388,4 @@ full. -->
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+```
