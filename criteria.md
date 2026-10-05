@@ -37,12 +37,10 @@ tool calls and returns a fit card — in at least 4 of 5 tries.
 Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
-**Why this target:**
+**Why this target:** This ensure unnecessary model calls are made and a 5 of 5 is reasonable because a query with no match will likely return an undesirable suggestion.
 
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
-
-     This ensure unnecessary model calls and a 5 of 5 is reasonable because a query with no match will likely return an undesirable suggestion.
 
 ---
 
@@ -78,10 +76,10 @@ This ensures accurate data transistion between tools. A 5 of 5 target is ideal h
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-     For 5 different listings, at least 4 of 5 fit cards mention the item's price.
+For 5 different listings, if the query includes a price ceiling, at least 4 of 5 fit cards mention the item’s price.
 
 **Why this target:**
-This target
+A caption that omits the price most of the time would feel disconnected from the request and would allow the user to make quick comparisons. A 4-of-5 target is strict enough to matter while still allowing normal variation in model output.
 
 ---
 
@@ -94,10 +92,10 @@ This target
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
-     If the wardrobe is empty, the agent returns a clear “no items available” message instead of calling the model or crashing — in 5 of 5 tries.
+If the wardrobe is empty, the agent returns a clear “no items available” message instead of calling the model or crashing — in 5 of 5 tries.
 
 **Why this target:**
-This allows ud to know whether the tool chain handles the empty-data case cleanly before it tries to do anything else. A strict 5-of-5 target makes sense because the code path is explicit and should be stable once the guard is in place.
+This allows us to know whether the tool chain handles the empty-data case cleanly before it tries to do anything else. A strict 5-of-5 target makes sense because the code path is explicit and should be stable once the guard is in place.
 
 ---
 
