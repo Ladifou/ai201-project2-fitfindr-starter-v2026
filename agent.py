@@ -19,6 +19,7 @@ from tools import search_listings, suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 import json
 import re
+from mcp_client import call_tool
 
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -117,7 +118,12 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         parsed_query = parse_query_with_model(session["query"])
         session["parsed"] = parsed_query
         
-        search_results = search_listings(parsed_query["description"], parsed_query["size"], parsed_query["max_price"])
+        #search_results = search_listings(parsed_query["description"], parsed_query["size"], parsed_query["max_price"])
+        search_results = call_tool("search_listings", {
+            "description": parsed_query["description"],
+            "size": parsed_query["size"],
+            "max_price": parsed_query["max_price"],
+        })
         session["search_results"] = search_results
         
 
