@@ -14,7 +14,7 @@ Build and test your three tools in `tools.py` first. Then come here.
 """
 
 import config
-import trace
+from trace import step, start_trace, get_trace, check_iterations
 from tools import search_listings, suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 import json
@@ -109,36 +109,50 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
+    start_trace()
 
     # TODO: delete these two lines and build the loop.
     while session["error"] is None and session["fit_card"] is None:
-        trace.check_iterations(session.get("iterations", 0))
+        check_iterations(session.get("iterations", 0))
+        
         session["iterations"] = session.get("iterations", 0) + 1
 
-        parsed_query = parse_query_with_model(session["query"])
-        session["parsed"] = parsed_query
-        
-        #search_results = search_listings(parsed_query["description"], parsed_query["size"], parsed_query["max_price"])
-        search_results = call_tool("search_listings", {
-            "description": parsed_query["description"],
-            "size": parsed_query["size"],
-            "max_price": parsed_query["max_price"],
-        })
-        session["search_results"] = search_results
-        
+        try:        
+            parsed_query = parse_query_with_model(session["query"])
+            session["parsed"] = parsed_query
+            
+            #search_results = search_listings(parsed_query["description"], parsed_query["size"], parsed_query["max_price"])
+            search_results = call_tool("search_listings", {
+                "description": parsed_query["description"],
+                "size": parsed_query["size"],
+                "max_price": parsed_query["max_price"],
+            })
+            session["search_results"] = search_results
+            step("search_listings", inputs={"query": query, "description": parsed_query["description"], "size": parsed_query["size"], "max_price": parsed_query["max_price"]}, returned=search_results)
 
-        if not search_results:
-            session["error"] = "No results found. Please try a different query."
+            if not search_results:
+                session["error"] = "No results found. Please try a different query."
+                return session
+
+
+            selected_item = search_results[0]
+            session["selected_item"] = selected_item
+
+            outfit_suggestion = suggest_outfit(selected_item, session["wardrobe"])
+            session["outfit_suggestion"] = outfit_suggestion
+
+            step("suggest_outfit", inputs={"item": selected_item, "wardrobe": session["wardrobe"]}, returned=outfit_suggestion)
+
+            fit_card = create_fit_card(outfit_suggestion, selected_item)
+            session["fit_card"] = fit_card
+
+            step("create_fit_card", inputs={"outfit": outfit_suggestion, "item": selected_item}, returned=fit_card)
+        except ModelUnavailable as e:
+            session["error"] = str(e)
             return session
 
-        selected_item = search_results[0]
-        session["selected_item"] = selected_item
-
-        outfit_suggestion = suggest_outfit(selected_item, session["wardrobe"])
-        session["outfit_suggestion"] = outfit_suggestion
-
-        fit_card = create_fit_card(outfit_suggestion, selected_item)
-        session["fit_card"] = fit_card
+        
+    get_trace()  # Get the trace after the loop ends
 
 
 

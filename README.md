@@ -212,9 +212,10 @@ Nothing beats the classic fit of vintage Levi’s 501s in a timeless medium wash
 
 When attempting to test my parsing function with the command
 
-````
+```
 python -c "from agent import parse_query_with_model; print(parse_query_with_model('vintage graphic tee under $30, size M'))"
 ```
+
 The price was hilighted (green) different from other text and the output always had price as none.
 
 - _What I asked for:_ I told Copilot that including the '$' (from a command it previously provided) causes the result to have max price as none/null.
@@ -250,7 +251,7 @@ The price was hilighted (green) different from other text and the output always 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
-````
+```
 
 ```
 
@@ -302,15 +303,38 @@ that produced it:
 
 ```
 
+(.venv) PS F:\CODEPATHAI201\ai201-project2-fitfindr-starter-v2026> python app.py ask 'tee under $30' --trace
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: 5 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Low-Rise Cargo Pants — Khaki … +2 more
+[2] suggest_outfit
+      in:  dict with keys: item, wardrobe
+      out: Here are two distinct outfits using your Y2K butterfly baby tee and pieces from your wardrobe:  ### Outfit 1: …
+[3] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Channel your inner 2000s icon with this nostalgic Y2K butterfly baby tee, featuring a cropped, fitted silhouet…
+
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
 ```
 
 **Empty search**
 
 ```
 
+(.venv) PS F:\CODEPATHAI201\ai201-project2-fitfindr-starter-v2026> python app.py ask '...' --trace
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: [] (empty)
+
+  No results found. Please try a different query.
+
+1 model calls this session, 169 prompt + 25 output tokens
+
 ```
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
+**On the MCP move:**
+
+<!-- what changed in your code, and whether anything
 behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
@@ -388,4 +412,7 @@ full. -->
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+```
+
 ```
