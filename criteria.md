@@ -92,7 +92,7 @@ A caption that omits the price most of the time would feel disconnected from the
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
-If the wardrobe is empty, the agent returns a clear “no items available” message instead of calling the model or crashing — in 5 of 5 tries.
+If the wardrobe is empty, the agent returns a clear “no items available” message instead of calling the model or crashing in 5 of 5 tries.
 
 **Why this target:**
 This allows us to know whether the tool chain handles the empty-data case cleanly before it tries to do anything else. A strict 5-of-5 target makes sense because the code path is explicit and should be stable once the guard is in place.

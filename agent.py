@@ -141,7 +141,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             outfit_suggestion = suggest_outfit(selected_item, session["wardrobe"])
             session["outfit_suggestion"] = outfit_suggestion
 
-            step("suggest_outfit", inputs={"item": selected_item, "wardrobe": session["wardrobe"]}, returned=outfit_suggestion)
+            step(f"suggest_outfit: selected item: {selected_item.get('title')}", inputs={"item": selected_item, "wardrobe": session["wardrobe"]}, returned=outfit_suggestion)
 
             fit_card = create_fit_card(outfit_suggestion, selected_item)
             session["fit_card"] = fit_card

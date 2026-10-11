@@ -240,19 +240,236 @@ The price was hilighted (green) different from other text and the output always 
      `python run_eval.py --label before` runs everything and writes the table
      into results/. Paste it here and fill in the verdicts. -->
 
-| Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
-| 1.        |        |       |       |       |       |       |         |
-| 2.        |        |       |       |       |       |       |         |
-| 3.        |        |       |       |       |       |       |         |
-| 4.        |        |       |       |       |       |       |         |
-| 5.        |        |       |       |       |       |       |         |
+| Criterion                                                                                                                                        | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1. matching query completes                                                                                                                      | 4 of 5 | pass  | pass  | pass  | pass  | pass  | MET     |
+| 2. impossible query stops early                                                                                                                  | 5 of 5 | pass  | pass  | pass  | pass  | pass  | MET     |
+| empty wardrobe _(diagnostic — not one of your five)_                                                                                             |        |       |       |       |       |       |         |
+| 3. the selected item, from search listing, stored in session should be the same item passed to suggest_outfit in 5 of 5 tries                    | 5 of 5 | pass  | pass  | pass  | pass  | pass  | MET     |
+| 4. if the query includes a price ceiling, at least 4 of 5 fit cards mention the item's price and that price is less than or equal to the ceiling | 4 od 5 | pass  | pass  | pass  | pass  | pass  | MET     |
+| 5. the agent returns a clear “no items available” message instead of calling the model or crashing in 5 of 5 tries.                              | 5 of 5 | fail  | fail  | fail  | fail  | fail  | MISSED  |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
+**criteria 1:**
+
+- File: agent.py
+- Function: run_agent()
+
+```
+Here are two distinct outfits using the graphic tee and pieces from your wardrobe:
+
+### Outfit 1: Streetwear Edge (Casual & Cool)
+*This look leans into the vintage band-tee aesthetic by pairing it with denim and layering pieces for texture.*
+
+*   **Top:** Graphic Tee (worn normally or slightly cropped)
+*   **Bottoms:** Baggy straight-leg jeans with the Brown leather belt
+*   **Outerwear:** Vintage black denim jacket
+*   **Shoes:** Chunky white sneakers
+*   **Bag:** Black crossbody bag
+*   *Styling Tip:* Leave the denim jacket unbuttoned to show off the graphic, and let the baggy fit of the jeans pool slightly over the chunky sneakers for a 90s-inspired silhouette.
+
+### Outfit 2: High-Low Contrast (Effortless & Elevated)
+*This look juxtaposes the casual, worn-in feel of the graphic tee with tailored trousers for a modern, styled-without-trying look.*
+
+*   **Top:** Graphic Tee (tucked in)
+*   **Bottoms:** Wide-leg khaki trousers with the Brown leather belt
+*   **Outerwear:** Black cropped zip hoodie (worn open or semi-zipped over the tee)
+*   **Shoes:** Black combat boots
+*   **Bag:** Black crossbody bag
+*   *Styling Tip:* Tucking the graphic tee into the wide-leg khakis defines the waist, while the cropped hoodie adds a modern proportion play. Finishing with combat boots grounds the lighter khaki color.
+Fit card:
+
+Channel major 2000s tour energy with this vintage-style graphic tee, featuring that perfectly worn-in look we all search for. Dress it down with baggy denim and a black denim jacket for effortless streetwear vibes, or elevate it by tucking it into wide-leg khakis with combat boots.
+
+**Price:** $24.00 | **Condition:** Thrifted & Mint 🎸✨
+Trace:
+
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: 8 items: Graphic Tee — 2003 Tour Bootleg Style, Y2K Baby Tee — Butterfly Print, Oversized Crewneck Sweatshirt — Vintage Navy … +5 more
+[2] suggest_outfit: selected item Graphic Tee — 2003 Tour Bootleg Style
+      in:  dict with keys: item, wardrobe
+      out: Here are two distinct outfits using the graphic tee and pieces from your wardrobe:  ### Outfit 1: Streetwear E…
+[3] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Channel major 2000s tour energy with this vintage-style graphic tee, featuring that perfectly worn-in look we …
+
 ```
 
+**Criteria 2: Impossible query stops early**
+
+- File: agent.py
+- Function: run_agent()
+
+```
+impossible query stops early
+Query: designer ballgown size XXS under $5
+Wardrobe: example
+Try 1
+
+stopped early: yes — No results found. Please try a different query.
+selected_item: (none)
+search_results: 0
+Trace:
+
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: [] (empty)
+```
+
+**Criteria 3: the selected item, from search listing, stored in session should be the same item passed to suggest_outfit in 5 of 5 tries**
+
+- File: agent.py
+- Function: run_agent()
+
+```
+Query: denim jacket under $50
+Wardrobe: example
+Try 1
+
+stopped early: no
+selected_item: Denim Jacket — Light Wash, Cropped ($42.0, poshmark)
+search_results: 5
+Outfit suggestion:
+
+Here are two stylish ways to style your light wash cropped denim jacket using pieces from your wardrobe, playing with contrasting washes and silhouettes.
+
+### Outfit 1: Effortless Streetwear (High-Contrast Denim)
+*This look leans into the trendy "double denim" look by pairing the light wash jacket with your dark wash jeans, creating a balanced contrast.*
+
+*   **Top:** White ribbed tank top (tucked in to define the waist).
+*   **Bottoms:** Baggy straight-leg jeans (dark wash).
+*   **Jacket:** Light wash cropped denim jacket (worn on top to highlight the high waist and contrast the dark wash).
+*   **Footwear:** Chunky white sneakers.
+*   **Accessories:** Black crossbody bag and the brown leather belt (to break up the look and add a touch of warmth).
+
+### Outfit 2: Casual Cool (Layered & Textural)
+*This outfit balances the structured, cropped nature of the jacket with relaxed, wide-leg trousers for an effortless, high-low aesthetic.*
+
+*   **Top:** Oversized grey crewneck sweatshirt (let the bottom hem peek out slightly for dimension).
+*   **Bottoms:** Wide-leg khaki trousers.
+*   **Jacket:** Light wash cropped denim jacket (layered right over the grey crewneck to add structure and a pop of blue against the grey and khaki).
+*   **Footwear:** Black combat boots (adds a slight edge to the softer khaki trousers).
+*   **Accessories:** Black crossbody bag.
+Fit card:
+
+Elevate your wardrobe with this versatile light wash cropped denim jacket, priced at just $42! Perfectly structured to highlight the waist, it's easily styled up or down—whether you're rocking the trendy double-denim look with dark wash jeans or layering it over an oversized sweatshirt and khakis. Grab this thrifted staple on Poshmark to effortlessly nail that cool, high-low aesthetic!
+Trace:
+
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: 5 items: Denim Jacket — Light Wash, Cropped, 90s Track Jacket — Navy/White Stripe, High-Waisted Denim Shorts — Cutoff … +2 more
+[2] suggest_outfit: selected item Denim Jacket — Light Wash, Cropped
+      in:  dict with keys: item, wardrobe
+      out: Here are two stylish ways to style your light wash cropped denim jacket using pieces from your wardrobe, playi…
+[3] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Elevate your wardrobe with this versatile light wash cropped denim jacket, priced at just $42! Perfectly struc…
+```
+
+**criteria 4:**
+
+```
+Query: denim jacket under $50
+Wardrobe: example
+Try 1
+
+stopped early: no
+selected_item: Denim Jacket — Light Wash, Cropped ($42.0, poshmark)
+search_results: 5
+Outfit suggestion:
+
+Here are two stylish ways to style your light wash cropped denim jacket using pieces from your wardrobe:
+
+### Outfit 1: Casual & Contrast-Play (Denim-on-Denim)
+*This look plays with proportions by pairing the cropped light-wash jacket with voluminous, dark-wash denim for an effortless streetwear vibe.*
+
+*   **Top:** White ribbed tank top
+*   **Bottom:** Baggy straight-leg jeans (dark wash)
+*   **Outerwear:** Light wash, cropped denim jacket
+*   **Footwear:** Chunky white sneakers
+*   **Accessories:** Black crossbody bag, Brown leather belt (optional, to define the waist)
+
+**Why it works:** The contrast between the light wash jacket and dark wash jeans creates visual interest, while the cropped length of the jacket balances the baggy fit of the trousers.
+
+---
+
+### Outfit 2: Elevated Smart-Casual
+*This outfit balances relaxed elements with tailored trousers for a chic, high-low everyday look.*
+
+*   **Top:** White ribbed tank top (layered under the black cropped zip hoodie worn open, or just the tank on its own depending on the weather)
+*   **Bottom:** Wide-leg khaki trousers
+*   **Outerwear:** Light wash, cropped denim jacket
+*   **Footwear:** Black combat boots
+*   **Accessories:** Black crossbody bag, Brown leather belt
+
+**Why it works:** Khaki and light wash denim are a classic, earthy color combination. Tucking in the white tank with a brown belt adds polish, and the black combat boots ground the lighter tones of the outfit with a bit of edge.
+Fit card:
+
+Elevate your everyday wardrobe with this versatile light-wash, cropped denim jacket, priced at just $42! Perfectly proportioned for effortless layering, it pairs just as easily with baggy dark-wash denim for streetwear cool as it does with tailored khaki trousers for a smart-casual vibe. Grab this wardrobe staple today and unlock endless styling potential!
+Trace:
+
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: 5 items: Denim Jacket — Light Wash, Cropped, 90s Track Jacket — Navy/White Stripe, High-Waisted Denim Shorts — Cutoff … +2 more
+[2] suggest_outfit: selected item Denim Jacket — Light Wash, Cropped
+      in:  dict with keys: item, wardrobe
+      out: Here are two stylish ways to style your light wash cropped denim jacket using pieces from your wardrobe:  ### …
+[3] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Elevate your everyday wardrobe with this versatile light-wash, cropped denim jacket, priced at just $42! Perfe…
+```
+
+**criteria 5:**
+
+- File: agent.py
+- Function: run_agent()
+
+```
+Query: denim jacket under $50
+Wardrobe: example
+Try 1
+
+stopped early: no
+selected_item: Denim Jacket — Light Wash, Cropped ($42.0, poshmark)
+search_results: 5
+Outfit suggestion:
+
+Here are two stylish ways to style your light-wash cropped denim jacket using pieces from your wardrobe:
+
+### Outfit 1: Casual & Layered (Streetwear Vibe)
+*This look plays with proportions by pairing the cropped jacket with relaxed bottoms and layered textures.*
+
+*   **Top:** White ribbed tank top (base layer) layered under the Oversized grey crewneck sweatshirt (with the collar and hem peeking out).
+*   **Bottoms:** Baggy straight-leg jeans (dark wash) with the Brown leather belt to define the waist.
+*   **Shoes:** Chunky white sneakers.
+*   **Accessory:** Black crossbody bag.
+*   **The Vibe:** Throw the **light-wash cropped denim jacket** over the oversized crewneck. The contrast between the dark wash jeans, light wash jacket, and grey sweatshirt creates a great denim-on-denim/neutral balance.
+
+### Outfit 2: Elevated Contrast (Smart-Casual)
+*This look balances the slouchy, professional feel of the wide-leg trousers with edgy, fitted layers.*
+
+*   **Top:** White ribbed tank top tucked in.
+*   **Bottoms:** Wide-leg khaki trousers with the Brown leather belt.
+*   **Shoes:** Black combat boots (to add a tough edge to the clean trousers).
+*   **Accessory:** Black crossbody bag.
+*   **The Vibe:** Wear the **light-wash cropped denim jacket** buttoned or unbuttoned over the tank top. The cropped length of the jacket will hit right at the high waist of the wide-leg trousers, accentuating your waist while keeping the overall silhouette effortless and cool.
+Fit card:
+
+Upgrade your wardrobe with this versatile, light-wash cropped denim jacket, priced at just $42! Perfectly proportioned, it transitions effortlessly from a streetwear-inspired layered look with baggy jeans to a smart-casual vibe with wide-leg trousers. Grab this staple piece on Poshmark and instantly elevate your everyday style!
+Trace:
+
+[1] search_listings
+      in:  dict with keys: query, description, size, max_price
+      out: 5 items: Denim Jacket — Light Wash, Cropped, 90s Track Jacket — Navy/White Stripe, High-Waisted Denim Shorts — Cutoff … +2 more
+[2] suggest_outfit: selected item Denim Jacket — Light Wash, Cropped
+      in:  dict with keys: item, wardrobe
+      out: Here are two stylish ways to style your light-wash cropped denim jacket using pieces from your wardrobe:  ### …
+[3] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Upgrade your wardrobe with this versatile, light-wash cropped denim jacket, priced at just $42! Perfectly prop…
 ```
 
 ---
@@ -275,13 +492,13 @@ that produced it:
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
-| #   | Criterion | Target | Verdict | How I decided |
-| --- | --------- | ------ | ------- | ------------- |
-| 1   |           |        |         |               |
-| 2   |           |        |         |               |
-| 3   |           |        |         |               |
-| 4   |           |        |         |               |
-| 5   |           |        |         |               |
+| #   | Criterion                                                                                                                  | Target | Verdict | How I decided                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------------------- | ------ | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | matching query completes                                                                                                   | 4 of 5 | MET     | All five tries completed after the query had a match in the wardrobe, which satisfies the 4 of 5 target                 |
+| 2   | impossible query stops early                                                                                               | 4 of 5 | MET     | All five queries stopped early after the search_listing returned an empty list.                                         |
+| 3   | the selected item, from search listing, stored in session should be the same item passed to suggest_outfit in 5 of 5 tries | 5 of 5 | MET     | Five tries had the suggest_outfit() tool have a selection from the list returned from search listing                    |
+| 4   | at least 4 of 5 fit cards mention the item's price and that price is less than or equal to the mentioned ceiling           | 4 of 5 | MET     | All five tries from every matching query produced a fit_card with that mentioned the price, which was below the ceiling |
+| 5   | the agent returns a clear “no items available” message instead of calling the model or crashing in 5 of 5 tries            | 5 of 5 | FAILED  | No tries were interupted early and neither produced a message of unavailability.                                        |
 
 **Diagnoses**
 

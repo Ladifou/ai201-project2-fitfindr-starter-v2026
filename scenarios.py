@@ -35,6 +35,25 @@ SCENARIOS = [
         "wardrobe": "empty",
         "criterion": None,
     },
+    {
+        "name": "the selected item, from search listing, stored in session should be the same item passed to suggest_outfit in 5 of 5 tries",
+        "query": "denim jacket under $50",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        "name": "if the query includes a price ceiling, at least 4 of 5 fit cards mention the item's price and that price is less than or equal to the ceiling",
+        "query": "denim jacket under $50",
+        "wardrobe": "example",
+        "criterion": 4,
+
+    },
+    {
+        "name": "the agent returns a clear “no items available” message instead of calling the model or crashing in 5 of 5 tries.",
+        "query": "denim jacket under $50",
+        "wardrobe": "example",
+        "criterion": 5,
+    }
     # TODO: add what your criteria 3, 4 and 5 need.
     #
     # Set "criterion" to the number in criteria.md that the scenario tests.
