@@ -558,7 +558,7 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
----
+The moved to MCP involved registering the deterministic code of the tool, search_listing() function, with the MCP server. The tool is then used by the agent via the mcp client which sets the mcp_server as a separate preocess via its call_tool() function. I didn't encounter any issue during the rewiring process and the application functionned as before.
 
 ## The Improvement
 
@@ -587,9 +587,11 @@ The failure was related to the poor selection of the criterion and inadequate sc
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
 
-## Yes the update helped by giving me more opportunity to work on understance the expectations and testing procedures of acceptance criteria.
+Yes the update helped by giving me more opportunity to work on understance the expectations and testing procedures of acceptance criteria.
 
 ## What's Still Broken
+
+Every criterion passed and the application seems to be wotking as intended. The only improvement i would like to include in the future is related to speed. Now the model takes some time to provide suggestions and fit_Ccard. while it is expected, an increase in response speed would make the project more user friendly.
 
 <!-- For each criterion still missed: what you'd do, and why you stopped where
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
