@@ -49,10 +49,11 @@ SCENARIOS = [
 
     },
     {
-        "name": "the agent returns a clear “no items available” message instead of calling the model or crashing in 5 of 5 tries.",
+        "name": "Suggested outfit mentions at least one wardrobe item 5 of 5 times",
         "query": "denim jacket under $50",
         "wardrobe": "example",
         "criterion": 5,
+        "force_model_failure": True,
     }
     # TODO: add what your criteria 3, 4 and 5 need.
     #

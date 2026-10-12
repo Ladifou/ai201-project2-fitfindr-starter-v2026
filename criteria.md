@@ -97,6 +97,10 @@ If the wardrobe is empty, the agent returns a clear “no items available” mes
 **Why this target:**
 This allows us to know whether the tool chain handles the empty-data case cleanly before it tries to do anything else. A strict 5-of-5 target makes sense because the code path is explicit and should be stable once the guard is in place.
 
+**Revised in unit 4:** "When a wardrobe is provided, the outfit suggestion should mention at least one specific item from the user's wardrobe in 5 of 5 tries".
+
+**Why revised:** The previous criterion was already selected in the project's instruction. This criterion should help test that the suggest_outfit() function is using the wardrobe's items instead of generic advices.
+
 ---
 
 <!-- ─────────────────────────────────────────────────────────────────────────
